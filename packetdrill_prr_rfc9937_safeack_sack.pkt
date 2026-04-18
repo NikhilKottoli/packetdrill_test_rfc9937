@@ -16,7 +16,7 @@
 // applicatino phase
 +0 accept(3, ..., ...) = 4
 
-// ---- inflate cwnd to 20 segments via ACKs (slow-start phase) ----
+// ---- inflate cwnd to 40 segments via ACKs (slow-start phase) ----
 +0 write(4, ..., 20000) = 20000
 
     +0 > . 1:10001(10000) ack 1
@@ -25,11 +25,23 @@
 +.010 < . 1:1(0) ack 20001 win 65535
 
 // At this point cwnd=40, FlightSize=0 (all ACKed).
-+0 write(4, ..., 40000) = 40000
++0 write(4, ..., 10000) = 10000
 
-// sender sends all his data (40 seg)
-+0 > . 20001:60001(40000) ack 1
+// sender sends all his data (10 seg)
++0 > . 20001:30001(10000) ack 1
 
-// bytes 20001-45000 (25 segments) are lost
-// receiver saw 45001-46000, sends first dup-ACK with SACK
-+.010 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 45001:46001>
+// only last segment is recieved
++.010 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 29001:30001>
+
++0 write(4, ..., 5000) = 5000
+
++0 > . 30001:31001(1000) ack 1
++.010 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 29001:31001>
+
++0 > . 31001:32001(1000) ack 1
++.010 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 29001:32001>
+// 3 dupAck, enter PRR
+
+// ASSERT FAST RETRANSMIT
+// The kernel re-sends the exact segment that was officially declared lost. pipe = 8 && ssthresh = 20.
+// see if it prints something here
