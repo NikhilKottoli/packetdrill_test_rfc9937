@@ -1,0 +1,35 @@
+// Establish connection
+0   socket(..., SOCK_STREAM, IPPROTO_TCP) = 3
++0  setsockopt(3, SOL_SOCKET, SO_REUSEADDR, [1], 4) = 0
++0  bind(3, ..., ...) = 0
++0  listen(3, 1) = 0
+
+// handshake part
+
+// syn
++0  < S 0:0(0) win 32792 <mss 1000,nop,nop,sackOK,nop,wscale 7>
+// syn+ack
++0  > S. 0:0(0) ack 1 <mss 1000,nop,nop,sackOK,nop,wscale 7>
+// ack
++0  < . 1:1(0) ack 1 win 32792
+
+// applicatino phase
++0 accept(3, ..., ...) = 4
+
+// ---- inflate cwnd to 20 segments via ACKs (slow-start phase) ----
++0 write(4, ..., 20000) = 20000
+
+    +0 > . 1:10001(10000) ack 1
++.010 < . 1:1(0) ack 10001 win 65535
+   +0 > . 10001:20001(10000) ack 1
++.010 < . 1:1(0) ack 20001 win 65535
+
+// At this point cwnd=40, FlightSize=0 (all ACKed).
++0 write(4, ..., 40000) = 40000
+
+// sender sends all his data (40 seg)
++0 > . 20001:60001(40000) ack 1
+
+// bytes 20001-45000 (25 segments) are lost
+// receiver saw 45001-46000, sends first dup-ACK with SACK
++.010 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 45001:46001>
