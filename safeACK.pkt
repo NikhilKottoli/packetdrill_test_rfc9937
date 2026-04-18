@@ -1,0 +1,79 @@
+// Establish connection
+0   socket(..., SOCK_STREAM, IPPROTO_TCP) = 3
++0  setsockopt(3, SOL_SOCKET, SO_REUSEADDR, [1], 4) = 0
++0  bind(3, ..., ...) = 0
++0  listen(3, 1) = 0
+
+// handshake part
+
+// syn
++0  < S 0:0(0) win 32792 <mss 1000,nop,nop,sackOK,nop,wscale 7>
+// syn+ack
++0 > S. 0:0(0) ack 1 win 65535 <...>
+// ack
++0  < . 1:1(0) ack 1 win 32792
+
+// applicatino phase
++0 accept(3, ..., ...) = 4
+
+// ---- inflate cwnd to 40 segments via ACKs (slow-start phase) ----
++0 write(4, ..., 20000) = 20000
+
++0 > . 1:1001(1000) ack 1
++0 > . 1001:2001(1000) ack 1
++0 > . 2001:3001(1000) ack 1
++0 > . 3001:4001(1000) ack 1
++0 > . 4001:5001(1000) ack 1
++0 > . 5001:6001(1000) ack 1
++0 > . 6001:7001(1000) ack 1
++0 > . 7001:8001(1000) ack 1
++0 > . 8001:9001(1000) ack 1
++0 > . 9001:10001(1000) ack 1
++.010 < . 1:1(0) ack 10001 win 65535
+
++0 > . 10001:11001(1000) ack 1
++0 > . 11001:12001(1000) ack 1
++0 > . 12001:13001(1000) ack 1
++0 > . 13001:14001(1000) ack 1
++0 > . 14001:15001(1000) ack 1
++0 > . 15001:16001(1000) ack 1
++0 > . 16001:17001(1000) ack 1
++0 > . 17001:18001(1000) ack 1
++0 > . 18001:19001(1000) ack 1
++0 > . 19001:20001(1000) ack 1
++.010 < . 1:1(0) ack 20001 win 65535
+
+// At this point cwnd=40, FlightSize=0 (all ACKed).
++0 write(4, ..., 15000) = 15000
+
+// sender sends all his data (10 seg)
++0 > . 20001:21001(1000) ack 1
++0 > . 21001:22001(1000) ack 1
++0 > . 22001:23001(1000) ack 1
++0 > . 23001:24001(1000) ack 1
++0 > . 24001:25001(1000) ack 1
++0 > . 25001:26001(1000) ack 1
++0 > . 26001:27001(1000) ack 1
++0 > . 27001:28001(1000) ack 1
++0 > . 28001:29001(1000) ack 1
++0 > . 29001:30001(1000) ack 1
+
+// only last segment is recieved
++.010 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 22001:30001>
+
++0 > . 30001:31001(1000) ack 1
++.010 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 22001:31001>
+
++0 > . 31001:32001(1000) ack 1
++.010 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 22001:32001>
+
++0 > . 32001:33001(1000) ack 1
++.010 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 22001:33001>
+// 3 dupAck, enter PRR
+
+// ASSERT FAST RETRANSMIT
+// The kernel re-sends the exact segment that was officially declared lost. pipe = 8 && ssthresh = 20.
++0 > . 33001:34001(1000) ack 1
++0 > . 20001:21001(1000) ack 1
+
++.010 < . 1:1(0) ack 21001 win 65535 <nop,nop,sack 22001:34001>
