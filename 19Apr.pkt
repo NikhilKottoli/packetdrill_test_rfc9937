@@ -91,42 +91,42 @@
 +0 > . 39001:40001(1000) ack 1
 
 // Original
-+.010 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 29001:30001>
++0 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 29001:40001>
 +0 > . 40001:41001(1000) ack 1
 
 // DupACK 1
-+.010 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 28001:30001>
++0 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 28001:30001>
 +0 > . 41001:42001(1000) ack 1
 
 // DupACK 2
-+.010 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 28001:31001>
++0 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 28001:41001>
 +0 > . 42001:43001(1000) ack 1
 
 // DupACK 3
-+.010 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 34001:35001 28001:32001>
++0 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 28001:42001>
 
 // Fast Retransmit, enter PRR
 +0 > . 43001:44001(1000) ack 1
-+0 > . 44001:45001(1000) ack 1
++0 > P. 44001:45001(1000) ack 1
 +0 > . 20001:21001(1000) ack 1
-// from here onwards: 
 
-// Receive a Partial ACK
-// We acknowledge the retransmit (20001).
-+0 < . 1:1(0) ack 21001 win 65535 <nop,nop,sack 22001:33001>
 
-+0 > . 21001:22001(1000) ack 1
++0 < . 1:1(0) ack 20001 win 65535 <nop,nop,sack 22001:42001>
+
+// The kernel bursts ONE segment as ack not advances
++0 > . 20001:21001(1000) ack 1
++0 > . 45001:46001(1000) ack 1
 
 // Receiver sends a Partial ACK for the segment just retransmitted (21001:22001).
 // This advances snd_una, so SafeACK = true.
-+.010 < . 1:1(0) ack 44001 win 65535
++0 < . 1:1(0) ack 44001 win 65535
 
 // Exit fast recovery.
-+.010 < . 1:1(0) ack 45001 win 65535
++0 < . 1:1(0) ack 45001 win 65535
 
 // ------------------------TEAR DOWN-----------------------------
 
 +0 close(4) = 0
 +0 > F. 45001:45001(0) ack 1
-+.010 < AF. 1:1(0) ack 45002 win 65535
++0 < AF. 1:1(0) ack 45002 win 65535
 +0 > . 45002:45002(0) ack 2
